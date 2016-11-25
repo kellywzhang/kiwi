@@ -1,0 +1,8 @@
+# Directories #
+######################
+__pycache__/*
+
+# Files #
+######################
+.DS_Store
+__init__.py
