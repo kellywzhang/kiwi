@@ -1,8 +1,11 @@
 # Directories #
 ######################
 __pycache__/*
+glove.6B/*
 
 # Files #
 ######################
 .DS_Store
 __init__.py
+*.zip
+*.p
