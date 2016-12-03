@@ -2,6 +2,7 @@
 ######################
 __pycache__/*
 glove.6B/*
+.ipynb_checkpoints/*
 
 # Files #
 ######################
@@ -9,3 +10,4 @@ glove.6B/*
 __init__.py
 *.zip
 *.p
+*.ipynb
