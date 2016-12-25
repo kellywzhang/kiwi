@@ -1,8 +1,9 @@
 # Directories #
 ######################
 __pycache__/*
-glove.6B/*
+glove/*
 .ipynb_checkpoints/*
+data/*
 
 # Files #
 ######################
