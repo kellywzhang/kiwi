@@ -1,8 +1,11 @@
 # Directories #
 ######################
 __pycache__/*
-glove.6B/*
+glove/*
 .ipynb_checkpoints/*
+models/__pycache__
+models/data/*
+models/runs/*
 
 # Files #
 ######################
