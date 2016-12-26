@@ -41,12 +41,11 @@ class RNNClassifier(object):
                 backward_cell = rnn_cell.GRUCell(state_size=hidden_size, input_size=embedding_dim, scope="GRU-Backward")
 
                 hidden_states, last_state = rnn.bidirectional_rnn(forward_cell, backward_cell, \
-                    input_embedding, self.seq_lens, batch_size, embedding_dim, concatenate=True)
+                    input_embedding, self.seq_lens, concatenate=True)
             else:
                 # One directional RNN (start to end)
                 cell = rnn_cell.GRUCell(state_size=hidden_size, input_size=embedding_dim, scope="GRU")
-                hidden_states, last_state = rnn.rnn(cell, input_embedding, self.seq_lens, \
-                    batch_size, embedding_dim)
+                hidden_states, last_state = rnn.rnn(cell, input_embedding, self.seq_lens)
 
         with tf.variable_scope("prediction"):
             if bidirectional:

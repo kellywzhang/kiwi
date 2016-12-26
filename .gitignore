@@ -3,7 +3,9 @@
 __pycache__/*
 glove/*
 .ipynb_checkpoints/*
-data/*
+models/__pycache__
+models/data/*
+models/runs/*
 
 # Files #
 ######################

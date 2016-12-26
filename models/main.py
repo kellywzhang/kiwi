@@ -3,6 +3,10 @@ import numpy as np
 from tensorflow.contrib import learn
 import datetime
 
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.curdir)[:-7])
+
 import tf_helpers
 import data_utils
 from RNNClassification import RNNClassifier
@@ -98,6 +102,7 @@ def dev_step(x_batch, y_batch, seq_lens, current_step, writer=None):
 
     return (loss_val, accuracy_val)
 
+
 # Starting Session
 # ================================================================================
 
@@ -109,7 +114,7 @@ nn = RNNClassifier(
         hidden_size=hidden_size,
         embedding_dim=embedding_dim,
         batch_size=batch_size,
-        bidirectional=True
+        bidirectional=False
     )
 
 optimizer = tf.train.AdamOptimizer(learning_rate) # TODO: CHOOSE YOUR FAVORITE OPTIMZER
