@@ -17,13 +17,13 @@ class BilinearFunction(object):
 
     # Expect dimensions: attending (batch x attending_size),
         # attended (batch x time x attended_size) - time could be other dim value
-    def __call__(self, attending, attended, seq_lens, scope=None):
+    def __call__(self, attending, attended, seq_lens_attended, scope=None):
       with tf.variable_scope(self._scope):
           attending_size = self._attending_size
           attended_size= self._attended_size
           batch_size = tf.shape(attended)[0]
 
-          time_mask = tf.sequence_mask(seq_lens, dtype=tf.float32)
+          time_mask = tf.sequence_mask(seq_lens_attended, dtype=tf.float32)
 
           self.W_bilinear = tf.get_variable(name="bilinear_attention", shape=[attending_size, attended_size], \
               initializer=tf.random_normal_initializer(mean=0.0, stddev=0.1))
