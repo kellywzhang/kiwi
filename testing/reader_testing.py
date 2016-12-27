@@ -71,17 +71,14 @@ with tf.variable_scope("embedding"):
 
 with tf.variable_scope("bidirection_rnn"):
     # Bidirectional RNNs for Document and Question
-    forward_cell_d = LSTMCell(state_size, input_size, scope="GRU-Forward-D")
+    forward_cell_d = GRUCell(state_size, input_size, scope="GRU-Forward-D")
     backward_cell_d = GRUCell(state_size, input_size, scope="GRU-Backward-D")
 
-    forward_cell_q = LSTMCell(state_size, input_size, scope="GRU-Forward-Q")
+    forward_cell_q = GRUCell(state_size, input_size, scope="GRU-Forward-Q")
     backward_cell_q = GRUCell(state_size, input_size, scope="GRU-Backward-Q")
 
-    # hidden_states_d, last_state_d = rnn(forward_cell_d, \
-    #     document_embedding, seq_lens_d)
-    #
-    # hidden_states_q, last_state_q = rnn(forward_cell_q, \
-    #     question_embedding, seq_lens_q)
+    # hidden_states_d, last_state_d = rnn(forward_cell_d, document_embedding, seq_lens_d)
+    # hidden_states_q, last_state_q = rnn(forward_cell_q, question_embedding, seq_lens_q)
 
     hidden_states_d, last_state_d = bidirectional_rnn(forward_cell_d, backward_cell_d, \
         document_embedding, seq_lens_d, concatenate=True)
@@ -89,35 +86,36 @@ with tf.variable_scope("bidirection_rnn"):
     hidden_states_q, last_state_q = bidirectional_rnn(forward_cell_q, backward_cell_q, \
         question_embedding, seq_lens_q, concatenate=True)
 
-# with tf.variable_scope("attention"):
-#     # Attention Layer
-#     attention = BilinearFunction(attending_size=state_size*2, attended_size=state_size*2)
-#     alpha_weights, attend_result = attention(attending=last_state_q, attended=hidden_states_d, \
-#         seq_lens=seq_lens_d)
-#
-# with tf.variable_scope("prediction"):
-#     W_predict = tf.get_variable(name="predict_weight", shape=[state_size*2, max_entities], \
-#         initializer=tf.random_normal_initializer(mean=0.0, stddev=0.1))
-#     b_predict = tf.get_variable(name="predict_bias", shape=[max_entities],
-#         initializer=tf.random_normal_initializer(mean=0.0, stddev=0.1))
-#     # Dimensions (batch_size x state_size*2)
-#     prediction_probs_unnormalized = tf.matmul(attend_result, W_predict) + b_predict
-#
-#     # Custom Softmax b/c need to use time_mask --------------------
-#     # Also numerical stability:
-#     mask_m = tf.cast(tf.sequence_mask(input_m, maxlen=10), tf.float32)
-#     numerator = tf.exp(prediction_probs_unnormalized) * mask_m
-#     denom = tf.reduce_sum(tf.exp(prediction_probs_unnormalized) * mask_m, 1)
-#
-#     # Transpose so broadcasting scalar division works properly
-#     # Dimensions (batch x time)
-#     prediction_probs = tf.transpose(tf.div(tf.transpose(numerator), denom))
-#     likelihoods = tf.reduce_sum(tf.mul(prediction_probs, one_hot_a), 1)
-#     log_likelihoods = tf.log(likelihoods)
-#     loss = tf.mul(tf.reduce_sum(log_likelihoods), -1)
-#     correct_vector = tf.cast(tf.equal(tf.argmax(one_hot_a, 1), tf.argmax(prediction_probs, 1)), \
-#         tf.float32, name="correct_vector")
-#     accuracy = tf.reduce_mean(correct_vector)
+with tf.variable_scope("attention"):
+    time_mask = tf.sequence_mask(seq_lens_d, dtype=tf.float32)
+    # Attention Layer
+    attention = BilinearFunction(attending_size=state_size*2, attended_size=state_size*2)
+    alpha_weights, attend_result = attention(attending=last_state_q, attended=hidden_states_d, \
+       seq_lens=seq_lens_d)
+
+with tf.variable_scope("prediction"):
+    W_predict = tf.get_variable(name="predict_weight", shape=[state_size*2, max_entities], \
+        initializer=tf.random_normal_initializer(mean=0.0, stddev=0.1))
+    b_predict = tf.get_variable(name="predict_bias", shape=[max_entities],
+        initializer=tf.random_normal_initializer(mean=0.0, stddev=0.1))
+    # Dimensions (batch_size x state_size*2)
+    prediction_probs_unnormalized = tf.matmul(attend_result, W_predict) + b_predict
+
+    # Custom Softmax b/c need to use time_mask --------------------
+    # Also numerical stability:
+    mask_m = tf.cast(tf.sequence_mask(input_m, maxlen=10), tf.float32)
+    numerator = tf.exp(prediction_probs_unnormalized) * mask_m
+    denom = tf.reduce_sum(tf.exp(prediction_probs_unnormalized) * mask_m, 1)
+
+    # Transpose so broadcasting scalar division works properly
+    # Dimensions (batch x time)
+    prediction_probs = tf.transpose(tf.div(tf.transpose(numerator), denom))
+    likelihoods = tf.reduce_sum(tf.mul(prediction_probs, one_hot_a), 1)
+    log_likelihoods = tf.log(likelihoods)
+    loss = tf.mul(tf.reduce_sum(log_likelihoods), -1)
+    correct_vector = tf.cast(tf.equal(tf.argmax(one_hot_a, 1), tf.argmax(prediction_probs, 1)), \
+        tf.float32, name="correct_vector")
+    accuracy = tf.reduce_mean(correct_vector)
 
 sess.run(tf.initialize_all_variables())
 
@@ -127,18 +125,20 @@ print(hidden_states_d.eval(feed).shape)
 print("last state")
 print(last_state_d.eval(feed))
 print(last_state_d.eval(feed).shape)
+print("time mask")
+print(time_mask.eval(feed))
 
-# print(alpha_weights.eval(feed))
-# print(attend_result.eval(feed))
-# print(attend_result.get_shape())
-# print(mask_m.eval(feed))
-# print(numerator.get_shape())
-# print(prediction_probs.eval(feed))
-# print(one_hot_a.eval(feed))
-# print(likelihoods.eval(feed))
-# print(log_likelihoods.eval(feed))
-# print(loss.eval(feed))
-# print(correct_vector.eval(feed))
-# print(accuracy.eval(feed))
+print(alpha_weights.eval(feed))
+print(attend_result.eval(feed))
+print(attend_result.eval(feed).shape)
+print(mask_m.eval(feed))
+print(numerator.get_shape())
+print(prediction_probs.eval(feed))
+print(one_hot_a.eval(feed))
+print(likelihoods.eval(feed))
+print(log_likelihoods.eval(feed))
+print(loss.eval(feed))
+print(correct_vector.eval(feed))
+print(accuracy.eval(feed))
 
 sess.close()
